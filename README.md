@@ -1,5 +1,3 @@
-[![pipeline status](https://gitlab.services.mts.ru/GOKRIZ/autoreports_projects/automation_reports/badges/main/pipeline.svg)](https://gitlab.services.mts.ru/GOKRIZ/autoreports_projects/automation_reports/-/commits/main)
-
 # Сервис автоматизации сбора информации об автоотчете и создании/обновлении/отключении задач в Task Scheduler.
 
 Сервис собирает информацию об автоотчете и записывает её в БД.
