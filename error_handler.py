@@ -1,25 +1,26 @@
-from subprocess import CalledProcessError, run
+# from subprocess import CalledProcessError, run
 
-from constants import DEFAULT_SENDER_FILE, PARAMS
+# from constants import DEFAULT_SENDER_FILE, PARAMS
 from logger import LOGGER_ERROR_TYPE
 
 ERROR_TYPES = set()
 
-
-def send_mail() -> None:
-    '''
-    Отпралвляет письмо с логом, если были ошибки.
-    '''
-    try:
-        command = [DEFAULT_SENDER_FILE, PARAMS]
-        run(command, check=True)
-        LOGGER_ERROR_TYPE['info']('Письмо успешно отправлено.')
-    except FileNotFoundError:
-        LOGGER_ERROR_TYPE['critical'](
-            'Не найден файл отправки: DEFAULT_SENDER_FILE.'
-            )
-    except CalledProcessError as error:
-        LOGGER_ERROR_TYPE['error'](f'Ошибка при отправке письма: {error}')
+# пока что не работает должным образом, т.к. файл лога занят,
+# отправка не происходит
+# def send_mail() -> None:
+#     '''
+#     Отпралвляет письмо с логом, если были ошибки.
+#     '''
+#     try:
+#         command = [DEFAULT_SENDER_FILE, PARAMS]
+#         run(command, check=True)
+#         LOGGER_ERROR_TYPE['info']('Письмо успешно отправлено.')
+#     except FileNotFoundError:
+#         LOGGER_ERROR_TYPE['critical'](
+#             'Не найден файл отправки: DEFAULT_SENDER_FILE.'
+#             )
+#     except CalledProcessError as error:
+#         LOGGER_ERROR_TYPE['error'](f'Ошибка при отправке письма: {error}')
 
 
 def handle_error(error: str, error_type: str) -> None:

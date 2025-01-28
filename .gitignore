@@ -17,8 +17,13 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+test*.py
+*.htm
+*.html
 
 # logs
 *.log
 *.txt
+!requirements.txt
 *.exe
+*.json

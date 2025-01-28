@@ -2,7 +2,7 @@ import logging
 from logging.handlers import RotatingFileHandler
 
 # Конфигурация логгера
-LOG_FILE = 'update_data.log'
+LOG_FILE = 'log.log'
 LOG_LEVEL = logging.INFO
 LOG_FORMAT = '%(asctime)s, %(levelname)s, %(message)s, %(funcName)s'
 LOG_ENCODING = 'windows-1251'

@@ -1,21 +1,20 @@
-from sys import argv
-
 from data_handler import insert_data, update_data
 from error_handler import handle_error
+from utils import parse_arguments
 
 
 def main():
-    INPUT_ARG = [arg for arg in argv[1].split(',')] if len(argv) > 1 else []
+    tasks = parse_arguments()
 
-    if 'daily_update' in INPUT_ARG:
+    if 'daily_update' in tasks:
         try:
             update_data()
         except Exception as e:
             handle_error(f'Ошибка в update_data: {e}', 'critical')
 
-    if INPUT_ARG and 'daily_update' not in INPUT_ARG:
+    if tasks and 'daily_update' not in tasks:
         try:
-            insert_data(INPUT_ARG)
+            insert_data(tasks)
         except Exception as e:
             handle_error(f'Ошибка в insert_data: {e}', 'critical')
 
