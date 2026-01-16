@@ -20,6 +20,8 @@ venv.bak/
 test*.py
 *.htm
 *.html
+log/
+!error_notification.html
 
 # logs
 *.log

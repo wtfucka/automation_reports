@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Уведомление об ошибке - Autoreports</title>
+    <style>
+        body {{
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333333;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }}
+        .container {{
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }}
+        .header {{
+            background: linear-gradient(135deg, #d32f2f 0%, #f44336 100%);
+            color: #ffffff;
+            padding: 30px;
+            text-align: center;
+        }}
+        .header.warning {{
+            background: linear-gradient(135deg, #f57c00 0%, #ff9800 100%);
+        }}
+        .header h1 {{
+            margin: 0;
+            font-size: 24px;
+            font-weight: 600;
+        }}
+        .header .icon {{
+            font-size: 48px;
+            margin-bottom: 10px;
+        }}
+        .content {{
+            padding: 30px;
+        }}
+        .alert-box {{
+            background-color: #ffebee;
+            border-left: 4px solid #d32f2f;
+            padding: 15px 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }}
+        .alert-box.warning {{
+            background-color: #fff3e0;
+            border-left-color: #f57c00;
+        }}
+        .alert-box h2 {{
+            margin: 0 0 10px 0;
+            font-size: 18px;
+            color: #d32f2f;
+        }}
+        .alert-box.warning h2 {{
+            color: #f57c00;
+        }}
+        .info-table {{
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }}
+        .info-table td {{
+            padding: 12px;
+            border-bottom: 1px solid #e0e0e0;
+        }}
+        .info-table td:first-child {{
+            font-weight: 600;
+            color: #555555;
+            width: 40%;
+        }}
+        .info-table td:last-child {{
+            color: #333333;
+        }}
+        .footer {{
+            background-color: #f5f5f5;
+            padding: 20px 30px;
+            text-align: center;
+            font-size: 12px;
+            color: #757575;
+            border-top: 1px solid #e0e0e0;
+        }}
+        .btn {{
+            display: inline-block;
+            padding: 12px 30px;
+            margin: 20px 0;
+            background-color: #d32f2f;
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: 600;
+            transition: background-color 0.3s;
+        }}
+        .btn:hover {{
+            background-color: #b71c1c;
+        }}
+        .status-badge {{
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }}
+        .status-critical {{
+            background-color: #ffcdd2;
+            color: #c62828;
+        }}
+        .status-error {{
+            background-color: #ffccbc;
+            color: #d84315;
+        }}
+        .timestamp {{
+            color: #757575;
+            font-size: 14px;
+            margin-top: 20px;
+        }}
+        @media only screen and (max-width: 600px) {{
+            .container {{
+                margin: 10px;
+                border-radius: 0;
+            }}
+            .content {{
+                padding: 20px;
+            }}
+            .header {{
+                padding: 20px;
+            }}
+        }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>Обнаружены ошибки в сервисе Automation_Reports</h1>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <p>Уважаемые коллеги,</p>
+            
+            <p>При работе сервиса были обнаружены ошибки, требующие вашего внимания.</p>
+
+            <!-- Information Table -->
+            <table class="info-table">
+                <tr>
+                    <td>Дата и время обнаружения:</td>
+                    <td><strong>{timestamp}</strong></td>
+                </tr>
+                <tr>
+                    <td>Типы ошибок:</td>
+                    <td><strong>{error_types}</strong></td>
+                </tr>
+                <tr>
+                    <td>Лог-файл:</td>
+                    <td>update_autoreports_data.log (во вложении)</td>
+                </tr>
+            </table>
+
+            <!-- Error Messages
+            <div style="margin: 20px 0;">
+                <h3 style="color: #333333; margin-bottom: 10px;">Обнаруженные ошибки:</h3>
+                <div style="background-color: #fff3e0; border-left: 4px solid #ff9800; padding: 15px; border-radius: 4px;">
+                    {error_messages}
+                </div>
+            </div> -->
+
+            <!-- Action Steps -->
+            <h3 style="color: #333333; margin-top: 30px;">Рекомендуемые действия:</h3>
+            <ol style="color: #555555; line-height: 1.8;">
+                <li>Проверьте приложенный лог-файл на наличие детальной информации об ошибках</li>
+                <li>Убедитесь в доступности всех баз данных</li>
+                <li>Проверьте корректность настроек подключения в конфигурационных файлах</li>
+                <li>Проверьте корректность созданного или измененного отчета согласно <a href="https://confluence.mts.ru/pages/viewpage.action?pageId=1381506900">инструкции</a></li>
+                <li>При необходимости перезапустите сервис вручную</li>
+            </ol>
+
+            <!-- Additional Info -->
+            <p style="margin-top: 30px; padding: 15px; background-color: #e3f2fd; border-radius: 4px; border-left: 4px solid #2196f3;">
+                <strong>💡 Совет:</strong> Все подробные логи сохраняются в директории <code>log/</code>. Рекомендуется регулярно проверять логи для выявления потенциальных проблем до их критического проявления.
+            </p>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p style="color: #BFBFBF;margin-top: 10px;">*Это письмо создано автоматически и не требует ответа.</p>
+		    <br>С уважением, <strong>Automation_Reports</strong>
+            <br>Группа отчетности и контроля качества
+            <br>регистрации и решения инцидентов и запросов
+            <br>Стрим Сервис Деск
+            <br>Трайб Профессиональные сервисы
+            <br>ИТ-кластер "Технологические платформы" 
+        </div>
+    </div>
+</body>
+</html>
