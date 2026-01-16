@@ -32,10 +32,11 @@ def handle_error(error: str, error_type: str) -> None:
     '''
     if error_type not in LOGGER_ERROR_TYPE:
         LOGGER_ERROR_TYPE['warning'](
-            f'Некорректный тип ошибки: {error_type}. Текст ошибки: {error}'
+            f'Некорректный тип ошибки: {error_type}. Текст ошибки: {error}',
+            stacklevel=3
             )
         return
 
-    LOGGER_ERROR_TYPE[error_type](error)
+    LOGGER_ERROR_TYPE[error_type](error, stacklevel=3)
     if error_type in ['error', 'critical']:
         ERROR_TYPES.add(error_type)
