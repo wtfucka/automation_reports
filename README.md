@@ -195,13 +195,13 @@ python main.py --tasks "find"
 Добавить/обновить информацию по конкретному request_id:
 
 ```bash
-python main.py --tasks find,RA000000000001
+python main.py --tasks find,REQ00000000001
 ```
 
 Или несколько отчетов:
 
 ```bash
-python main.py --tasks find,RA000000000001,RA000000000002
+python main.py --tasks find,REQ00000000001,REQ00000000002
 ```
 
 ### Запуск через Task Scheduler
@@ -460,7 +460,7 @@ YYYY-MM-DD HH:MM:SS,mmm - LEVEL - message - funcName
 Пример:
 ```
 2025-12-16 10:30:03,263 - INFO - Сервис запущен: 2025-12-16 10:30:03,263 - main
-2025-12-16 10:30:03,300 - WARNING - Файл лога не найден RA000000000001 - process_log_files
+2025-12-16 10:30:03,300 - WARNING - Файл лога не найден REQ00000000001 - process_log_files
 2025-12-16 10:30:03,350 - ERROR - Ошибка чтения файла: Permission denied - check_encoding
 2025-12-16 10:30:05,450 - CRITICAL - Ошибка подключения к Oracle: Connection timeout - _get_oracle_connection
 ```
@@ -587,7 +587,7 @@ server.quit()
 ```
 parent_folder/
 ├── db_name/
-│   └── RA000000000001/
+│   └── REQ00000000001/
 │       ├── REQ000000000001.cmd
 │       ├── REQ000000000001.json (опционально)
 │       └── log.log
