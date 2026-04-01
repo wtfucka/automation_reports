@@ -8,18 +8,23 @@ pipeline status link
 
 ## Содержание
 
-- [Описание](#-описание)
-- [Возможности](#-возможности)
-- [Требования](#-требования)
-- [Установка](#-установка)
-- [Использование](#-использование)
-- [Архитектура проекта](#-архитектура-проекта)
-- [Собираемые данные](#-собираемые-данные)
-- [Автоматическое создание расписания](#-автоматическое-создание-расписания)
-- [Логирование и мониторинг](#-логирование-и-мониторинг)
+- [Описание](#описание)
+- [Возможности](#возможности)
+- [Требования](#требования)
+- [Установка](#установка)
+- [Использование](#использование)
+- [Структура проекта](#структура-проекта)
+- [Граф зависимостей](#граф-зависимостей-ацикличный--adp)
+- [Применённые принципы](#применённые-принципы)
+- [Собираемые данные](#собираемые-данные)
+- [Автоматическое создание расписания](#автоматическое-создание-расписания)
+- [Логирование и мониторинг](#логирование-и-мониторинг)
 - [Troubleshooting](#-troubleshooting)
-- [Разработка](#-разработка)
-- [Авторы](#-авторы)
+- [Разработка](#разработка)
+- [Дополнительные ресурсы](#дополнительные-ресурсы)
+- [Поддержка](#поддержка)
+- [Авторы](#авторы)
+- [Лицензия](#лицензия)
 
 ---
 
@@ -235,86 +240,93 @@ Email с ошибками отправлен: fake@fake.ru.
 
 ---
 
-## Архитектура проекта
-
-### Структура файлов
+## Структура проекта
 
 ```
 automation_reports/
-├── main.py                    # Точка входа, координация процесса
-├── data_handler.py            # Сбор данных из всех источников
-├── data_processor.py          # Обработка и форматирование данных
-├── database_handler.py        # Работа с БД (Oracle, PostgreSQL, MS SQL)
-├── scheduler_handler.py       # Управление Task Scheduler
-├── email_notifier.py          # Отправка email уведомлений
-├── error_handler.py           # Обработка ошибок
-├── logger.py                  # Настройка логирования
-├── utils.py                   # Вспомогательные функции
-├── constants.py               # Константы проекта
-├── error_notification.html    # HTML шаблон email
-├── requirements.txt           # Python зависимости
-├── file_name.json        # ⚠️ Конфигурация БД (не в Git)
-├── log/                       # Логи работы сервиса
-│   └── update_autoreports_data.log
-└── venv/                      # Виртуальное окружение
+├── main.py                          # Точка входа + CLI
+├── container.py                     # Composition Root (DI-контейнер)
+│
+├── domain/                          # ВНУТРЕННИЙ КРУГ (высокие политики)
+│   ├── entities/
+│   │   └── models.py                # Сущности: Task, Trigger, Report
+│   ├── ports/
+│   │   └── interfaces.py            # ABC-интерфейсы (контракты)
+│   ├── value_objects/
+│   │   └── converters.py            # Bitmask, Date конвертеры
+│   └── validators/
+│       └── trigger_validator.py     # Чистая валидация триггеров
+│
+├── application/                     # СРЕДНИЙ КРУГ (use cases)
+│   ├── use_cases/
+│   │   ├── update_data.py           # Сценарий: ежедневное обновление
+│   │   └── insert_data.py           # Сценарий: добавление новых отчётов
+│   └── services/
+│       └── processing.py            # TaskDataProcessing, DataMerger
+│
+└── infrastructure/                  # ВНЕШНИЙ КРУГ (низкие политики)
+    ├── db/
+    │   └── repositories.py          # MSSQL, Oracle, PostgreSQL адаптеры
+    ├── scheduler/
+    │   └── win32_gateway.py         # Win32 COM Task Scheduler
+    ├── filesystem/
+    │   └── readers.py               # JSON, CMD, LOG, FolderScanner
+    ├── notification/
+    │   └── notifier.py              # Logging + SMTP Email
+    └── vcs/
+        └── git_gateway.py           # Git commit/push
 ```
 
-### Поток данных
+---
+
+## Граф зависимостей (Ацикличный — ADP)
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                          main.py                                │
-│                       (Точка входа)                             │
-└─────────────────────────┬───────────────────────────────────────┘
-                          │
-                          ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                      data_handler.py                            │
-│               (Координация сбора данных)                        │
-└──┬──────────┬──────────┬──────────┬──────────┬──────────────────┘
-   │          │          │          │          │
-   ▼          ▼          ▼          ▼          ▼
-┌─────┐  ┌─────────┐ ┌─────────┐ ┌──────┐ ┌────────┐
-│Task │  │Database │ │CMD Files│ │ Logs │ │ Git    │
-│Sched│  │Handler  │ │Processor│ │Reader│ │ Commit │
-└──┬──┘  └────┬────┘ └────┬────┘ └──┬───┘ └───┬────┘
-   │          │           │         │         │
-   └──────────┴───────────┴─────────┴─────────┘
-                          │
-                          ▼
-              ┌───────────────────────┐
-              │  data_processor.py    │
-              │ (Обработка и слияние) │
-              └───────────┬───────────┘
-                          │
-                          ▼
-              ┌───────────────────────┐
-              │   database_handler    │
-              │   (Запись в MS SQL)   │
-              └───────────────────────┘
+  infrastructure ──→ application ──→ domain
+  (внешний круг)     (средний)      (внутренний)
+
+  Стрелки ВСЕГДА направлены к центру.
+  Циклов нет.
 ```
 
-### Ключевые компоненты
+---
 
-#### 1. **DatabaseConnector** (`database_handler.py`)
-- Connection pooling для переиспользования соединений
-- Batch запросы (N запросов → 1 запрос)
-- Поддержка Oracle, PostgreSQL, MS SQL
 
-#### 2. **TaskSchedulerManager** (`scheduler_handler.py`)
-- Создание/обновление задач в Task Scheduler
-- Поддержка множественных триггеров
-- Парсинг JSON конфигурации
+## Применённые принципы
 
-#### 3. **SchedulerDataProcessor** (`data_processor.py`)
-- Обработка данных Task Scheduler
-- Перемещение отключенных отчетов в архив
-- Git commit изменений
+### 1. Dependency Rule (Правило зависимостей)
+Зависимости **всегда** направлены от внешнего круга к внутреннему.
+`infrastructure` → `application` → `domain`.
+Domain **ничего** не знает о БД, файлах, COM API.
 
-#### 4. **EmailNotifier** (`email_notifier.py`)
-- HTML email с деталями ошибок
-- Вложение файла логов
-- SMTP без SSL/TLS (внутренний сервер)
+### 2. SRP (Single Responsibility Principle)
+Каждый модуль имеет **одну причину для изменений**:
+
+| Модуль | Причина изменений |
+|--------|------------------|
+| `trigger_validator.py` | Правила валидации расписания |
+| `win32_gateway.py` | API Task Scheduler |
+| `repositories.py` | Схема БД / SQL запросы |
+| `readers.py` | Формат файлов (JSON, CMD, LOG) |
+| `processing.py` | Маппинг полей для БД |
+
+### 3. CCP (Common Closure Principle)
+Классы, изменяющиеся по одной причине, сгруппированы в один пакет:
+- `infrastructure/db/` — все адаптеры к БД
+- `domain/value_objects/` — все конвертеры дат и масок
+- `domain/validators/` — вся валидация
+
+### 4. Dependency Inversion (DIP)
+Use Cases зависят от **абстракций** (`domain/ports/interfaces.py`),
+а не от конкретных реализаций. Конкретные классы передаются через
+конструктор (Dependency Injection).
+
+### 5. Open/Closed Principle (OCP)
+Для добавления нового источника данных:
+- YAML расписание → создать `YamlScheduleFileReader(ScheduleFileReader)`
+- cron → создать `CronTaskSchedulerGateway(TaskSchedulerGateway)`
+
+**Существующий код не меняется.**
 
 ---
 
@@ -454,15 +466,15 @@ log/update_autoreports_data.log
 ### Формат логов
 
 ```
-YYYY-MM-DD HH:MM:SS,mmm - LEVEL - message - funcName
+YYYY-MM-DD HH:MM:SS,mmm, LEVEL, message, funcName
 ```
 
 Пример:
 ```
-2025-12-16 10:30:03,263 - INFO - Сервис запущен: 2025-12-16 10:30:03,263 - main
-2025-12-16 10:30:03,300 - WARNING - Файл лога не найден REQ00000000001 - process_log_files
-2025-12-16 10:30:03,350 - ERROR - Ошибка чтения файла: Permission denied - check_encoding
-2025-12-16 10:30:05,450 - CRITICAL - Ошибка подключения к Oracle: Connection timeout - _get_oracle_connection
+2025-12-16 10:30:03,263, INFO, Сервис запущен: 2025-12-16 10:30:03,263, main
+2025-12-16 10:30:03,300, WARNING, Файл лога не найден REQ00000000001, process_log_files
+2025-12-16 10:30:03,350, ERROR, Ошибка чтения файла: Permission denied, check_encoding
+2025-12-16 10:30:05,450, CRITICAL, Ошибка подключения к Oracle: Connection timeout, _get_oracle_connection
 ```
 
 ### Уровни логирования
@@ -478,9 +490,9 @@ YYYY-MM-DD HH:MM:SS,mmm - LEVEL - message - funcName
 
 - **Лимит размера**: 4 MB
 - **При достижении лимита**: 
-  - Текущий лог переименовывается в `update_autoreports_data_{YYYYMMDD_HHMMSS}.log`
+  - Текущий лог ротируется с суффиксом `.1`, `.2`, ... `.5`
   - Создается новый чистый лог-файл
-- **Хранение**: Все ротированные логи сохраняются (не удаляются автоматически)
+- **Хранение**: Максимум 5 архивных файлов (старые удаляются автоматически)
 
 ### Email уведомления
 

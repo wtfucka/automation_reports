@@ -6,8 +6,9 @@ __pycache__/
 # C extensions
 *.so
 
-# VS Code
+# VS Code / IDE
 .vscode/
+.idea/
 
 # Environments
 .env
@@ -17,15 +18,33 @@ venv/
 ENV/
 env.bak/
 venv.bak/
-test*.py
+
+# Testing
+test_*.py
+tests/
+arch/
+
+# Build / Distribution
+*.egg-info/
+dist/
+build/
+
+# Type checking / Linting cache
+.mypy_cache/
+
+# HTML (кроме шаблона уведомлений)
 *.htm
 *.html
-log/
 !error_notification.html
 
-# logs
+# Logs
+log/
 *.log
+
+# Text files (кроме requirements)
 *.txt
 !requirements.txt
+
+# Binaries and configs (не в репозитории)
 *.exe
 *.json

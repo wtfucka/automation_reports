@@ -1,34 +1,88 @@
-from data_handler import insert_data, update_data, connector
-from error_handler import handle_error, ERROR_TYPES
-from email_notifier import send_error_report
-from utils import log_execution_time, parse_arguments
+from __future__ import annotations
+
+import time
+from argparse import ArgumentParser
+from datetime import datetime
+
+from container import Container
+
+# Константы (были в constants.py)
+ROOT_REPORT_PATHS = ['path_name']
+DATABASE_TYPE = {'db_name': 'postgre'}
+LOG_FILE_NAME = 'log.log'
 
 
-@log_execution_time
-def main():
-    tasks: set = parse_arguments()
+def parse_arguments() -> set[str]:
+    parser = ArgumentParser(description='Обработка данных.')
+    parser.add_argument(
+        '--tasks', type=str, default='',
+        help='Список задач через запятую',
+    )
+    args = parser.parse_args()
+    return set(args.tasks.split(',')) if args.tasks else set()
+
+
+def main() -> None:
+    start = time.time()
+    start_dt = datetime.now().strftime('%Y-%m-%d %H:%M:%S,%f')[:-3]
+
+    # Сборка зависимостей
+    container = Container(
+        root_report_paths=ROOT_REPORT_PATHS,
+        database_type_map=DATABASE_TYPE,
+        log_file_name=LOG_FILE_NAME,
+    )
+
+    notifier = container.error_notifier
+    notifier.notify(f'{"-" * 60}', 'info')
+    notifier.notify(f'Сервис запущен: {start_dt}', 'info')
+
+    tasks = parse_arguments()
 
     try:
         if 'daily_update' in tasks:
             try:
-                update_data()
+                uc = container.update_data_use_case()
+                uc.execute()
             except Exception as e:
-                handle_error(f'Ошибка в update_data: {e}', 'critical')
+                notifier.notify(
+                    f'Ошибка update_data: {e}', 'critical'
+                )
 
         if tasks and 'daily_update' not in tasks:
             try:
-                insert_data(tasks.discard('find'))
+                uc = container.insert_data_use_case()
+                uc.execute(tasks.discard('find'))  # type: ignore
             except Exception as e:
-                handle_error(f'Ошибка в insert_data: {e}', 'critical')
+                notifier.notify(
+                    f'Ошибка insert_data: {e}', 'critical'
+                )
     finally:
-        # Закрываем все соединения с БД перед выходом
         try:
-            connector.close_connections()
+            container.close()
         except Exception as e:
-            handle_error(f'Ошибка закрытия открытых соединений с БД: {e}',
-                         'error')
-        # Отправляем email если были ошибки
-        send_error_report(ERROR_TYPES)
+            notifier.notify(
+                f'Ошибка закрытия соединений: {e}', 'error'
+            )
+
+        # Отправка email при ошибках
+        container.email_sender.send_error_report()
+
+        # Логирование времени
+        end = time.time()
+        end_dt = datetime.now().strftime(
+            '%Y-%m-%d %H:%M:%S,%f'
+        )[:-3]
+        duration = end - start
+        h = int(duration // 3600)
+        m = int((duration % 3600) // 60)
+        s = duration % 60
+        notifier.notify(f'Сервис завершён: {end_dt}', 'info')
+        notifier.notify(
+            f'Время выполнения: {h:02d}:{m:02d}:{s:06.3f}',
+            'info',
+        )
+        notifier.notify(f'{"-" * 60}', 'info')
 
 
 if __name__ == '__main__':
